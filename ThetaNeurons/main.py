@@ -255,10 +255,10 @@ def stretching_eta(delta_eta, eta_final, times, start_string_index, filename):
 
 
 if __name__ == '__main__':
-    default_theta_neuron(5, 15, 0.8, 0.2, 0.04, 5, 2000, 200000)
+    # default_theta_neuron(5, 15, 0.8, 0.2, 0.04, 5, 2000, 200000)
     # visualize_eta_change('results_eta_positive.csv', 700, 3000, 5000)
     # visualize_data('default.csv', 2, 10000)
-    processes = [multiprocessing.Process(target=stretching_eta, args=(0.01, 50, 2000, -1, 'results_eta_positive.csv',)),
+    processes = [multiprocessing.Process(target=stretching_eta, args=(0.01, 70, 2000, -1, 'results_eta_positive.csv',)),
                  multiprocessing.Process(target=stretching_eta, args=(-0.01, -1, 2000, -1, 'results_eta_negative.csv',))]
 
     for process in processes:
