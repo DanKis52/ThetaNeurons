@@ -5,12 +5,13 @@ import numpy as np
 import timeit
 import matplotlib.pyplot as plt
 import multiprocessing
+from typing import List, NoReturn
 
 odesMethod = ['rk4', '0']
 
 
 #  исходный код из MainScript.py
-def default_theta_neuron(m, eta, tau, kappa, epsilon, N, times_zero_eps, times_w_eps, filename='default.csv'):
+def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon: float, N: int, times_zero_eps: int, times_w_eps: int, filename: str='default.csv') -> NoReturn:
     numElements = 2 * N + 1
     mass = tau * np.abs(kappa) * m / (1 + m) * np.sqrt(1 + ((1 + eta) * tau) ** 2)
     alpha = np.arccos(- (1 + eta) * tau / np.sqrt(1 + ((1 + eta) * tau) ** 2))
@@ -82,7 +83,7 @@ def default_theta_neuron(m, eta, tau, kappa, epsilon, N, times_zero_eps, times_w
 
 
 #  string_index - номер строки в соответствии с нумерацией в csv файле
-def visualize_data(filename, string_index, times):
+def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
     m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, string_index-1)
     numElements = len(initialPoint) - 1
     odesModel = odesSD.thetaNeurons(tau, eta, kappa, m, epsilon)
@@ -92,7 +93,7 @@ def visualize_data(filename, string_index, times):
     print(f'[Visualization] Calculating theta for eta = {odesModel.eta}...')
     theta_sol, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
     qpi = np.transpose(theta_sol)
-    print(f'Final points: {qpi[:,-1]}')
+    print(f'[Visualization] Final points:\n{qpi[:,-1]}')
 
     for n in range(0, numElements):
         v = np.angle(np.exp(1j * (qpi[n] - qpi[0])))
@@ -107,7 +108,7 @@ def visualize_data(filename, string_index, times):
     plt.show()
 
 
-def is_cyclope(points, eta):
+def is_cyclope(points: List[float], eta: float) -> bool:
     if len(np.unique(np.round(points, 1))) == 4:
         return True
     else:
@@ -121,7 +122,7 @@ def is_cyclope(points, eta):
 #  график перехода eta
 #  string_index - номер строки в соответствии с нумерацией в csv файле
 #  times - t для каждой eta
-def visualize_eta_change(filename, string_index, times1, times2):
+def visualize_eta_change(filename: str, string_index: int, times1: int, times2: int) -> NoReturn:
     if string_index < 2 and string_index != -1:
         return print('[Visualisation error] String index incorrect')
     data_first = []
@@ -173,7 +174,7 @@ def visualize_eta_change(filename, string_index, times1, times2):
     plt.show()
 
 
-def get_string_data(filename, string_index):
+def get_string_data(filename: str, string_index: int) -> tuple:
     data = []
     with open(filename, 'r', newline='') as f:
         file_reader = csv.reader(f, delimiter=",")
@@ -183,7 +184,7 @@ def get_string_data(filename, string_index):
     return data[0], data[1], data[2], data[3], data[4], data[7:]
 
 
-def stretching_eta(delta_eta, eta_final, times, start_string_index, filename):
+def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_index: int, filename: str) -> None:
     m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, start_string_index)
     if delta_eta < 0 and eta_final > eta:
         return print(f'[finalEta = {eta_final}] unreachable: [eta = {eta}, deltaEta = {delta_eta}]')
@@ -255,9 +256,9 @@ def stretching_eta(delta_eta, eta_final, times, start_string_index, filename):
 
 
 if __name__ == '__main__':
-    # default_theta_neuron(5, 15, 0.8, 0.2, 0.04, 5, 2000, 200000)
-    # visualize_eta_change('results_eta_positive.csv', 700, 3000, 5000)
-    # visualize_data('default.csv', 2, 10000)
+    #default_theta_neuron(5, 15, 0.8, 0.2, 0.04, 5, 2000, 2000)
+    #visualize_eta_change('results_eta_positive.csv', 20, 2000, 2000)
+    visualize_data('default.csv', 2, 1000)
     processes = [multiprocessing.Process(target=stretching_eta, args=(0.01, 70, 2000, -1, 'results_eta_positive.csv',)),
                  multiprocessing.Process(target=stretching_eta, args=(-0.01, -1, 2000, -1, 'results_eta_negative.csv',))]
 
