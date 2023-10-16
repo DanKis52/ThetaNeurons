@@ -30,10 +30,6 @@ def rhsFunctionDef(problem):
     return rhsFunction;
 # ------------------------------------------------------------------------------- #
 def ivpSolution(odesMethod, xSpan, numSteps, odesProblem, yInitial, *args, **kwargs):
-    """
-    This function numerically integrates a system of ordinary differential equations (ODEs)
-    given initial values, i.e., it solves an initial value problem (IVP) for an ODEs system.
-    """
     tolerance = 1e+5;
     odesSolver, odesSolverVersion = odesSolverDef(odesMethod);
     rhsFunction = rhsFunctionDef(odesProblem);

@@ -91,7 +91,7 @@ def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Visualization] Calculating theta for eta = {odesModel.eta}...')
+    print(f'[Visualization] Calculating theta for eta = {odesModel.eta}, kappa = {odesModel.kappa}...')
     theta_sol, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
     qpi = np.transpose(theta_sol)
     print(f'[Visualization] Final points:\n{qpi[:,-1]}')
@@ -105,7 +105,7 @@ def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
     plt.grid(color=[.5, .5, .5], linestyle=':', linewidth=1)
     plt.xlabel("$t$")
     plt.ylabel("$\phi$")
-    plt.title(f'$\eta$ = {odesModel.eta}\n')
+    plt.title(f'$\eta$ = {odesModel.eta} $\kappa$ = {odesModel.kappa}\n')
     plt.show()
 
 
@@ -361,13 +361,14 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
             if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa):
                 break
         else:
-            print(f'[eta = {odesModel.eta}] Process completed!')
+            print(f'[kappa = {odesModel.kappa}] Process completed!')
 
 
 if __name__ == '__main__':
     #default_theta_neuron(5, 0.3, 0.8, 0.2, 0.04, 5, 1000, 10000, 'results_kappa_positive_eta_0_3')
-    #visualize_change('kappa', 'results_eta_positive.csv', 20, 2000, 2000)
-    #visualize_data('default.csv', 2, 1000)
+    #visualize_change('kappa', 'results_kappa_positive_eta_0_3.csv', -1, 2000, 2000)
+    #visualize_data('results_kappa_negative_eta_0_3.csv', -1, 1000)
+
     processes = [multiprocessing.Process(target=stretching_kappa,
                                          args=(0.01, 20, 2000, -1, 'results_kappa_positive_eta_0_3.csv',)),
                  multiprocessing.Process(target=stretching_kappa,
