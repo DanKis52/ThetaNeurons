@@ -55,7 +55,7 @@ def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon
     plt.xlabel("$t$")
     plt.ylabel("$\phi$")
     plt.axvline(x=(t1[-1]), color='red')
-    plt.title(f'$\eta$ = {odesModel.eta}\n')
+    plt.title(f'$\eta$ = {odesModel.eta} $\kappa$ = {odesModel.kappa}\n')
     plt.show()
 
     r1 = []
@@ -365,10 +365,10 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
 
 
 if __name__ == '__main__':
-    #default_theta_neuron(5, 0.3, 0.8, 0.2, 0.04, 5, 1000, 10000, 'results_kappa_positive_eta_0_3')
-    #visualize_change('kappa', 'results_kappa_positive_eta_0_3.csv', -1, 2000, 2000)
+    default_theta_neuron(5, 0.3, 0.8, 0, 0.04, 5, 1000, 10000)
+    #visualize_change('kappa', 'results_kappa_negative_eta_0_3.csv', -1, 2000, 2000)
     #visualize_data('results_kappa_negative_eta_0_3.csv', -1, 1000)
-
+'''
     processes = [multiprocessing.Process(target=stretching_kappa,
                                          args=(0.01, 20, 2000, -1, 'results_kappa_positive_eta_0_3.csv',)),
                  multiprocessing.Process(target=stretching_kappa,
@@ -381,3 +381,4 @@ if __name__ == '__main__':
 
     for process in processes:
         process.join()
+'''
