@@ -368,8 +368,7 @@ if __name__ == '__main__':
     #default_theta_neuron(5, 0.3, 0.8, 0.2, 0.04, 5, 1000, 10000, 'results_kappa_positive_eta_0_3')
     #visualize_change('kappa', 'results_eta_positive.csv', 20, 2000, 2000)
     #visualize_data('default.csv', 2, 1000)
-    processes = [multiprocessing.Process(target=stretching_eta, args=(0.01, 70, 2000, -1, 'results_eta_positive.csv',)),
-                 multiprocessing.Process(target=stretching_kappa,
+    processes = [multiprocessing.Process(target=stretching_kappa,
                                          args=(0.01, 20, 2000, -1, 'results_kappa_positive_eta_0_3.csv',)),
                  multiprocessing.Process(target=stretching_kappa,
                                          args=(-0.01, 0, 2000, -1, 'results_kappa_negative_eta_0_3.csv',)),
