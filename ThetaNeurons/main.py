@@ -517,35 +517,41 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
         else:
             print(f'[tau = {odesModel.tau}] Process completed!')
 
+
+def divide_array(array, n):
+    divided_array = []
+    for i in range(0, len(array), n):
+        divided_array.append(array[i:i+n])
+    return divided_array
+
+
 if __name__ == '__main__':
     #default_theta_neuron(50, 0.5, 0.8, 1.5, 0.04, 5, 750, 2000)
     #visualize_change('eta', 'noNoise/results_eta_positive.csv', 100, 1000, 1000, 0.01)
     #visualize_data('Noise/results_tau_positive.csv', 2, 1000)
-
-    processes = [
+    print(f'[Multiprocessing] {multiprocessing.cpu_count()} cores available')
+    prc = [
                  multiprocessing.Process(target=stretching_eta,
                                          args=(-0.01, 0, 2000, -1, 'Noise/results_eta_negative.csv', 0.001,)),
                  multiprocessing.Process(target=stretching_kappa,
                                          args=(-0.01, 0, 2000, -1, 'Noise/results_kappa_negative.csv', 0.001,)),
                  multiprocessing.Process(target=stretching_tau,
                                          args=(-0.01, 0, 2000, -1, 'Noise/results_tau_negative.csv', 0.001,)),
+                 multiprocessing.Process(target=stretching_eta,
+                                         args=(0.01, 20, 2000, -1, 'Noise/results_eta_positive.csv', 0.001,)),
+                 multiprocessing.Process(target=stretching_kappa,
+                                         args=(0.01, 20, 2000, -1, 'Noise/results_kappa_positive.csv', 0.001,)),
+                 multiprocessing.Process(target=stretching_tau,
+                                         args=(0.01, 20, 2000, -1, 'Noise/results_tau_positive.csv', 0.001,)),
+                 multiprocessing.Process(target=stretching_tau,
+                                         args=(0.01, 20, 2000, -1, 'noNoise/results_tau_positive.csv', 0,)),
+                 multiprocessing.Process(target=stretching_tau,
+                                         args=(-0.01, 0, 2000, -1, 'noNoise/results_tau_negative.csv', 0,)),
                  ]
-    for process in processes:
-        process.start()
-        time.sleep(0.1)
-    for process in processes:
-        process.join()
-
-    processes = [
-        multiprocessing.Process(target=stretching_eta,
-                                args=(0.01, 20, 2000, -1, 'Noise/results_eta_positive.csv', 0.001,)),
-        multiprocessing.Process(target=stretching_kappa,
-                                args=(0.01, 20, 2000, -1, 'Noise/results_kappa_positive.csv', 0.001,)),
-        multiprocessing.Process(target=stretching_tau,
-                                args=(0.01, 20, 2000, -1, 'Noise/results_tau_positive.csv', 0.001,)),
-    ]
-    for process in processes:
-        process.start()
-        time.sleep(0.1)
-    for process in processes:
-        process.join()
+    split_processes = divide_array(prc, multiprocessing.cpu_count())
+    for processes in split_processes:
+        for process in processes:
+            process.start()
+            time.sleep(0.1)
+        for process in processes:
+            process.join()
