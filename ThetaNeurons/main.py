@@ -1,3 +1,5 @@
+import time
+
 import odesExplicitSolvers as odesES
 import odesSystemDescription as odesSD
 import csv
@@ -9,6 +11,13 @@ from typing import List, NoReturn
 import click
 
 odesMethod = ['rk4', '0']
+
+
+def add_noise(points: List[float], scale: float) -> List[float]:
+    # noise = np.random.uniform(low=-scale, high=scale, size=len(points)-1)
+    noise = np.random.normal(scale=scale, size=len(points)-1)
+    noise = np.append(noise, 0)
+    return points+noise
 
 
 #  для исключения больших значений
@@ -27,7 +36,7 @@ def initial_point_fixer(filename: str) -> NoReturn:
 
 
 #  исходный код из MainScript.py
-def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon: float, N: int, times_zero_eps: int, times_w_eps: int, filename: str='default.csv') -> NoReturn:
+def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon: float, N: int, times_zero_eps: int, times_w_eps: int, filename: str = 'default.csv') -> NoReturn:
     numElements = 2 * N + 1
     mass = tau * np.abs(kappa) * m / (1 + m) * np.sqrt(1 + ((1 + eta) * tau) ** 2)
     alpha = np.arccos(- (1 + eta) * tau / np.sqrt(1 + ((1 + eta) * tau) ** 2))
@@ -100,17 +109,18 @@ def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon
 
 
 #  string_index - номер строки в соответствии с нумерацией в csv файле
-def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
+def visualize_data(filename: str, string_index: int, times: int, noise_scale: float = 0) -> NoReturn:
     try:
         m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, string_index-1)
     except ValueError:
         return print('[Visualization] Error: Incorrect data string')
+    initialPoint = add_noise(initialPoint, noise_scale)
     numElements = len(initialPoint) - 1
     odesModel = odesSD.thetaNeurons(tau, eta, kappa, m, epsilon)
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Visualization] Calculating theta for eta = {odesModel.eta}, kappa = {odesModel.kappa}, tau = {odesModel.tau}...')
+    print(f'[Visualization] Calculating theta for eta = {odesModel.eta}, kappa = {odesModel.kappa}, tau = {odesModel.tau}, noise_scale = {noise_scale}')
     theta_sol, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
     qpi = np.transpose(theta_sol)
     print(f'[Visualization] Final points:\n{qpi[:,-1]}')
@@ -143,7 +153,7 @@ def is_cyclope(points: List[float], eta: float, kappa: float, tau: float) -> boo
 #  график перехода eta
 #  string_index - номер строки в соответствии с нумерацией в csv файле
 #  times - t для каждой eta
-def visualize_change(varname: str, filename: str, string_index: int, times1: int, times2: int) -> NoReturn:
+def visualize_change(varname: str, filename: str, string_index: int, times1: int, times2: int, noise_scale: float = 0) -> NoReturn:
     if string_index < 2 and string_index != -1:
         return print('[Changes Visualisation] Error: String index incorrect')
     data_first = []
@@ -163,6 +173,7 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
     except ValueError:
         return print('[Changes Visualisation] ValueError: Incorrect data string')
     m = data_first[0]
+    print(f'[Changes Visualisation] noise_scale = {noise_scale}')
     if varname == 'eta':
         eta1, eta2 = data_first[1], data_second[1]
         tau = data_first[2]
@@ -170,7 +181,7 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
         epsilon = data_first[4]
         odesS = [0., times1]
         odesNS = [10 * np.int_(odesS[1]), 10]
-        initialPoint = data_first[7:]
+        initialPoint = add_noise(data_first[7:], noise_scale)
         numElements = len(initialPoint) - 1
         odesModel = odesSD.thetaNeurons(tau, eta1, kappa, m, epsilon)
         odesModelDescription = [odesModel, 'rhsFunction']
@@ -178,7 +189,7 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
         qpi, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
         qpi1, t1 = np.transpose(qpi), t
         odesModel.eta = eta2
-        initialPoint = qpi1[:, -1]
+        initialPoint = add_noise(qpi1[:, -1], noise_scale)
         odesS = [0., times2]
         odesNS = [10 * np.int_(odesS[1]), 10]
         qpi, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
@@ -195,6 +206,7 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
         plt.xlabel("$t$")
         plt.ylabel(r"$\varphi$")
         plt.title(f'$\eta$ = {eta1} to $\eta$ = {eta2}\n')
+        plt.axvline(x=(t1[-1]-30), color='red')
         plt.axvline(x=(t1[-1]), color='red')
         plt.show()
     elif varname == 'kappa':
@@ -279,7 +291,7 @@ def get_string_data(filename: str, string_index: int) -> tuple:
     return data[0], data[1], data[2], data[3], data[4], data[7:]
 
 
-def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_index: int, filename: str) -> NoReturn:
+def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_index: int, filename: str, noise_scale: float = 0) -> NoReturn:
     m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, start_string_index)
     if delta_eta < 0 and eta_final > eta:
         return print(f'[finalEta = {eta_final}] unreachable: [eta = {eta}, deltaEta = {delta_eta}]')
@@ -288,7 +300,8 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Stretching eta] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaEta = {delta_eta}, finalEta = {eta_final}, odesSpan = {odesS}')
+    print(f'[Stretching eta] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaEta = {delta_eta}, finalEta = {eta_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
+    initialPoint = add_noise(initialPoint, noise_scale)
     if delta_eta > 0:
         while round(odesModel.eta+delta_eta, 3) <= eta_final:
             elapsedTime = timeit.default_timer()
@@ -354,7 +367,7 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
             print(f'[eta = {odesModel.eta}] Process completed!')
 
 
-def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_string_index: int, filename: str) -> NoReturn:
+def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_string_index: int, filename: str, noise_scale: float = 0) -> NoReturn:
     m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, start_string_index)
     if delta_kappa < 0 and kappa_final > kappa:
         return print(f'[finalKappa = {kappa_final}] unreachable: [kappa = {kappa}, deltaKappa = {delta_kappa}]')
@@ -363,7 +376,8 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Stretching kappa] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaKappa = {delta_kappa}, finalKappa = {kappa_final}, odesSpan = {odesS}')
+    print(f'[Stretching kappa] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaKappa = {delta_kappa}, finalKappa = {kappa_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
+    initialPoint = add_noise(initialPoint, noise_scale)
     if delta_kappa > 0:
         while round(odesModel.kappa+delta_kappa, 3) <= kappa_final:
             elapsedTime = timeit.default_timer()
@@ -429,7 +443,7 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
             print(f'[kappa = {odesModel.kappa}] Process completed!')
 
 
-def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_index: int, filename: str) -> NoReturn:
+def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_index: int, filename: str, noise_scale: float = 0) -> NoReturn:
     m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, start_string_index)
     if delta_tau < 0 and tau_final > tau:
         return print(f'[finalTau = {tau_final}] unreachable: [tau = {tau}, deltaTau = {delta_tau}]')
@@ -438,7 +452,8 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Stretching tau] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaTau = {delta_tau}, finalTau = {tau_final}, odesSpan = {odesS}')
+    print(f'[Stretching tau] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaTau = {delta_tau}, finalTau = {tau_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
+    initialPoint = add_noise(initialPoint, noise_scale)
     if delta_tau > 0:
         while round(odesModel.tau+delta_tau, 3) <= tau_final:
             elapsedTime = timeit.default_timer()
@@ -505,16 +520,33 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
 
 if __name__ == '__main__':
     #default_theta_neuron(50, 0.5, 0.8, 1.5, 0.04, 5, 750, 2000)
-    #visualize_change('tau', 'results_tau_positive.csv', -1, 1000, 1000)
-    #visualize_data('results_tau_positive.csv', -1, 1000)
+    #visualize_change('eta', 'noNoise/results_eta_positive.csv', 100, 1000, 1000, 0.01)
+    #visualize_data('Noise/results_tau_positive.csv', 2, 1000)
 
     processes = [
+                 multiprocessing.Process(target=stretching_eta,
+                                         args=(-0.01, 0, 2000, -1, 'Noise/results_eta_negative.csv', 0.001,)),
+                 multiprocessing.Process(target=stretching_kappa,
+                                         args=(-0.01, 0, 2000, -1, 'Noise/results_kappa_negative.csv', 0.001,)),
                  multiprocessing.Process(target=stretching_tau,
-                                         args=(0.01, 20, 2000, -1, 'results_tau_positive.csv',)),
-                 multiprocessing.Process(target=stretching_tau,
-                                         args=(-0.01, 0, 2000, -1, 'results_tau_negative.csv',)),
+                                         args=(-0.01, 0, 2000, -1, 'Noise/results_tau_negative.csv', 0.001,)),
                  ]
     for process in processes:
         process.start()
+        time.sleep(0.1)
+    for process in processes:
+        process.join()
+
+    processes = [
+        multiprocessing.Process(target=stretching_eta,
+                                args=(0.01, 20, 2000, -1, 'Noise/results_eta_positive.csv', 0.001,)),
+        multiprocessing.Process(target=stretching_kappa,
+                                args=(0.01, 20, 2000, -1, 'Noise/results_kappa_positive.csv', 0.001,)),
+        multiprocessing.Process(target=stretching_tau,
+                                args=(0.01, 20, 2000, -1, 'Noise/results_tau_positive.csv', 0.001,)),
+    ]
+    for process in processes:
+        process.start()
+        time.sleep(0.1)
     for process in processes:
         process.join()
