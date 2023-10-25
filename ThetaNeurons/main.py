@@ -11,6 +11,21 @@ import click
 odesMethod = ['rk4', '0']
 
 
+#  для исключения больших значений
+def initial_point_fixer(filename: str) -> NoReturn:
+    with open(filename, 'r', newline='') as f:
+        file_reader = csv.reader(f, delimiter=",")
+        lines = list(file_reader)
+        for i in range(1, len(lines)):
+            for j in range(7, 18):
+                lines[i][j] = float(lines[i][j]) % (2 * np.pi)
+        f.close()
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(lines)
+        f.close()
+
+
 #  исходный код из MainScript.py
 def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon: float, N: int, times_zero_eps: int, times_w_eps: int, filename: str='default.csv') -> NoReturn:
     numElements = 2 * N + 1
@@ -72,7 +87,8 @@ def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon
 
     data = [m, eta, tau, kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
     data = np.append(data, qpi[:, -1])
-    filename = filename+'.csv'
+    for j in range(7, 18):
+        data[j] = float(data[j]) % (2 * np.pi)
     if click.confirm(f'[MainScript] Update file "{filename}"?', default=False):
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -110,10 +126,10 @@ def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
 
 
 def is_cyclope(points: List[float], eta: float, kappa: float) -> bool:
-    if len(np.unique(np.round(points, 1))) == 4:
+    if len(np.unique(np.round(points, 3))) == 4:
         return True
     else:
-        with open('suspect_eta.csv', 'a+', newline='') as f:
+        with open('suspect.csv', 'a+', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([eta, kappa])
             f.close()
@@ -251,6 +267,8 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
                 r2.append(np.abs(sum_2 / numElements))
             data = [m, odesModel.eta, tau, kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
             data = np.append(data, qpi[:, -1])
+            for j in range(7, 18):
+                data[j] = float(data[j]) % (2 * np.pi)
             with open(filename, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(data)
@@ -280,6 +298,8 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
                 r2.append(np.abs(sum_2 / numElements))
             data = [m, odesModel.eta, tau, kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
             data = np.append(data, qpi[:, -1])
+            for j in range(7, 18):
+                data[j] = float(data[j]) % (2 * np.pi)
             with open(filename, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(data)
@@ -322,6 +342,8 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
                 r2.append(np.abs(sum_2 / numElements))
             data = [m, eta, tau, odesModel.kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
             data = np.append(data, qpi[:, -1])
+            for j in range(7, 18):
+                data[j] = float(data[j]) % (2 * np.pi)
             with open(filename, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(data)
@@ -351,6 +373,8 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
                 r2.append(np.abs(sum_2 / numElements))
             data = [m, eta, tau, odesModel.kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
             data = np.append(data, qpi[:, -1])
+            for j in range(7, 18):
+                data[j] = float(data[j]) % (2 * np.pi)
             with open(filename, 'a+', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(data)
@@ -365,9 +389,9 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
 
 
 if __name__ == '__main__':
-    #default_theta_neuron(5, 0.3, 0.8, 0, 0.04, 5, 1000, 10000)
+    #default_theta_neuron(50, 0.5, 0.8, 1.5, 0.04, 5, 750, 2000)
     #visualize_change('kappa', 'results_kappa_negative_eta_0_3.csv', -1, 2000, 2000)
-    #visualize_data('results_kappa_negative_eta_0_3.csv', -1, 1000)
+    visualize_data('results_kappa_positive_eta_0_3.csv', 1983, 1000)
 
     processes = [multiprocessing.Process(target=stretching_kappa,
                                          args=(0.01, 20, 2000, -1, 'results_kappa_positive_eta_0_3.csv',)),
