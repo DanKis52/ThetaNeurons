@@ -530,28 +530,16 @@ if __name__ == '__main__':
     #visualize_change('eta', 'noNoise/results_eta_positive.csv', 100, 1000, 1000, 0.01)
     #visualize_data('Noise/results_tau_positive.csv', 2, 1000)
     print(f'[Multiprocessing] {multiprocessing.cpu_count()} cores available')
-    prc = [
-                 multiprocessing.Process(target=stretching_eta,
-                                         args=(-0.01, 0, 2000, -1, 'Noise/results_eta_negative.csv', 0.001,)),
-                 multiprocessing.Process(target=stretching_kappa,
-                                         args=(-0.01, 0, 2000, -1, 'Noise/results_kappa_negative.csv', 0.001,)),
-                 multiprocessing.Process(target=stretching_tau,
-                                         args=(-0.01, 0, 2000, -1, 'Noise/results_tau_negative.csv', 0.001,)),
-                 multiprocessing.Process(target=stretching_eta,
-                                         args=(0.01, 20, 2000, -1, 'Noise/results_eta_positive.csv', 0.001,)),
-                 multiprocessing.Process(target=stretching_kappa,
-                                         args=(0.01, 20, 2000, -1, 'Noise/results_kappa_positive.csv', 0.001,)),
-                 multiprocessing.Process(target=stretching_tau,
-                                         args=(0.01, 20, 2000, -1, 'Noise/results_tau_positive.csv', 0.001,)),
-                 multiprocessing.Process(target=stretching_tau,
-                                         args=(0.01, 20, 2000, -1, 'noNoise/results_tau_positive.csv', 0,)),
-                 multiprocessing.Process(target=stretching_tau,
-                                         args=(-0.01, 0, 2000, -1, 'noNoise/results_tau_negative.csv', 0,)),
-                 ]
-    split_processes = divide_array(prc, multiprocessing.cpu_count())
-    for processes in split_processes:
-        for process in processes:
-            process.start()
-            time.sleep(0.1)
-        for process in processes:
-            process.join()
+
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    result_eta = pool.starmap_async(stretching_eta, [(-0.01, 0, 2000, -1, 'Noise/results_eta_negative.csv', 0.001,),
+                                                     (0.01, 20, 2000, -1, 'Noise/results_eta_positive.csv', 0.001,)])
+    result_kappa = pool.starmap_async(stretching_kappa, [(-0.01, 0, 2000, -1, 'Noise/results_kappa_negative.csv', 0.001,),
+                                                         (0.01, 20, 2000, -1, 'Noise/results_kappa_positive.csv', 0.001,)])
+    result_tau = pool.starmap_async(stretching_tau, [(-0.01, 0, 2000, -1, 'Noise/results_tau_negative.csv', 0.001,),
+                                                     (0.01, 20, 2000, -1, 'Noise/results_tau_positive.csv', 0.001,),
+                                                     (0.01, 20, 2000, -1, 'noNoise/results_tau_positive.csv', 0,),
+                                                     (-0.01, 0, 2000, -1, 'noNoise/results_tau_negative.csv', 0,)])
+    result_eta.get()
+    result_kappa.get()
+    result_tau.get()
