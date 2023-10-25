@@ -101,13 +101,16 @@ def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon
 
 #  string_index - номер строки в соответствии с нумерацией в csv файле
 def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
-    m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, string_index-1)
+    try:
+        m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, string_index-1)
+    except ValueError:
+        return print('[Visualization] Error: Incorrect data string')
     numElements = len(initialPoint) - 1
     odesModel = odesSD.thetaNeurons(tau, eta, kappa, m, epsilon)
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Visualization] Calculating theta for eta = {odesModel.eta}, kappa = {odesModel.kappa}...')
+    print(f'[Visualization] Calculating theta for eta = {odesModel.eta}, kappa = {odesModel.kappa}, tau = {odesModel.tau}...')
     theta_sol, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
     qpi = np.transpose(theta_sol)
     print(f'[Visualization] Final points:\n{qpi[:,-1]}')
@@ -120,19 +123,20 @@ def visualize_data(filename: str, string_index: int, times: int) -> NoReturn:
         plt.plot(t[0:-itspan:itstride], vmean)
     plt.grid(color=[.5, .5, .5], linestyle=':', linewidth=1)
     plt.xlabel("$t$")
-    plt.ylabel("$\phi$")
-    plt.title(f'$\eta$ = {odesModel.eta} $\kappa$ = {odesModel.kappa}\n')
+    plt.ylabel(r"$\varphi$")
+    plt.title(fr'$\eta$ = {odesModel.eta} $\kappa$ = {odesModel.kappa} $\tau$ = {odesModel.tau}'+'\n')
     plt.show()
 
 
-def is_cyclope(points: List[float], eta: float, kappa: float) -> bool:
-    if len(np.unique(np.round(points, 3))) == 4:
+def is_cyclope(points: List[float], eta: float, kappa: float, tau: float) -> bool:
+    if len(np.unique(np.round(points, 1))) == 4:
         return True
     else:
         with open('suspect.csv', 'a+', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([eta, kappa])
+            writer.writerow([eta, kappa, tau])
             f.close()
+            print(f'[Suspect state] eta = {eta}, kappa = {kappa}, tau = {tau}')
         return True
 
 
@@ -141,7 +145,7 @@ def is_cyclope(points: List[float], eta: float, kappa: float) -> bool:
 #  times - t для каждой eta
 def visualize_change(varname: str, filename: str, string_index: int, times1: int, times2: int) -> NoReturn:
     if string_index < 2 and string_index != -1:
-        return print('[Visualisation error] String index incorrect')
+        return print('[Changes Visualisation] Error: String index incorrect')
     data_first = []
     data_second = []
     with open(filename, 'r', newline='') as f:
@@ -152,9 +156,12 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
             data_str = list(file_reader)[string_index - 1:string_index+1]
         f.close()
     if not data_str:
-        return print('[Visualisation error] String index incorrect')
-    data_first = np.append(data_first, [float(x) for x in data_str[0]])
-    data_second = np.append(data_second, [float(x) for x in data_str[1]])
+        return print('[Changes Visualisation] Error: String index incorrect')
+    try:
+        data_first = np.append(data_first, [float(x) for x in data_str[0]])
+        data_second = np.append(data_second, [float(x) for x in data_str[1]])
+    except ValueError:
+        return print('[Changes Visualisation] ValueError: Incorrect data string')
     m = data_first[0]
     if varname == 'eta':
         eta1, eta2 = data_first[1], data_second[1]
@@ -167,7 +174,7 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
         numElements = len(initialPoint) - 1
         odesModel = odesSD.thetaNeurons(tau, eta1, kappa, m, epsilon)
         odesModelDescription = [odesModel, 'rhsFunction']
-        print(f'[Visualization] Calculating theta for eta = {eta1} & eta = {eta2}')
+        print(f'[Changes Visualisation] Calculating theta for eta = {eta1} & eta = {eta2}')
         qpi, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
         qpi1, t1 = np.transpose(qpi), t
         odesModel.eta = eta2
@@ -186,11 +193,11 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
             plt.plot(t[0:-itspan:itstride], vmean)
         plt.grid(color=[.5, .5, .5], linestyle=':', linewidth=1)
         plt.xlabel("$t$")
-        plt.ylabel("$\phi$")
+        plt.ylabel(r"$\varphi$")
         plt.title(f'$\eta$ = {eta1} to $\eta$ = {eta2}\n')
         plt.axvline(x=(t1[-1]), color='red')
         plt.show()
-    if varname == 'kappa':
+    elif varname == 'kappa':
         eta = data_first[1]
         tau = data_first[2]
         kappa1, kappa2 = data_first[3], data_second[3]
@@ -201,7 +208,7 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
         numElements = len(initialPoint) - 1
         odesModel = odesSD.thetaNeurons(tau, eta, kappa1, m, epsilon)
         odesModelDescription = [odesModel, 'rhsFunction']
-        print(f'[Visualization] Calculating theta for kappa = {kappa1} & kappa = {kappa2}')
+        print(f'[Changes Visualisation] Calculating theta for kappa = {kappa1} & kappa = {kappa2}')
         qpi, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
         qpi1, t1 = np.transpose(qpi), t
         odesModel.kappa = kappa2
@@ -220,12 +227,46 @@ def visualize_change(varname: str, filename: str, string_index: int, times1: int
             plt.plot(t[0:-itspan:itstride], vmean)
         plt.grid(color=[.5, .5, .5], linestyle=':', linewidth=1)
         plt.xlabel("$t$")
-        plt.ylabel("$\phi$")
+        plt.ylabel(r"$\varphi$")
         plt.title(f'$\kappa$ = {kappa1} to $\kappa$ = {kappa2}\n')
         plt.axvline(x=(t1[-1]), color='red')
         plt.show()
+    elif varname == 'tau':
+        eta = data_first[1]
+        tau1, tau2 = data_first[2], data_second[2]
+        kappa = data_first[3]
+        epsilon = data_first[4]
+        odesS = [0., times1]
+        odesNS = [10 * np.int_(odesS[1]), 10]
+        initialPoint = data_first[7:]
+        numElements = len(initialPoint) - 1
+        odesModel = odesSD.thetaNeurons(tau1, eta, kappa, m, epsilon)
+        odesModelDescription = [odesModel, 'rhsFunction']
+        print(f'[Changes Visualisation] Calculating theta for tau = {tau1} & tau = {tau2}')
+        qpi, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
+        qpi1, t1 = np.transpose(qpi), t
+        odesModel.tau = tau2
+        initialPoint = qpi1[:, -1]
+        odesS = [0., times2]
+        odesNS = [10 * np.int_(odesS[1]), 10]
+        qpi, t = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
+        qpi2, t2 = np.transpose(qpi), t + t1[-1]
+        qpi, t = np.concatenate((qpi1, qpi2), axis=1), np.concatenate((t1, t2), axis=0)
+
+        for n in range(0, numElements):
+            v = np.angle(np.exp(1j * (qpi[n] - qpi[0])))
+            itspan, itstride = np.int_(np.where(t == 30)[0][0]), 5
+            vmean = [np.trapz(v[it:it + itspan], t[it:it + itspan]) / (t[it + itspan] - t[it]) for it in
+                     range(0, len(t) - itspan, itstride)]
+            plt.plot(t[0:-itspan:itstride], vmean)
+        plt.grid(color=[.5, .5, .5], linestyle=':', linewidth=1)
+        plt.xlabel("$t$")
+        plt.ylabel(r"$\varphi$")
+        plt.title(fr'$\tau$ = {tau1} to $\tau$ = {tau2}'+'\n')
+        plt.axvline(x=(t1[-1]), color='red')
+        plt.show()
     else:
-        return print(f'[Visualisation] Incorrect varname "{varname}"')
+        return print(f'[Changes Visualisation] Error: Incorrect varname "{varname}"')
 
 
 def get_string_data(filename: str, string_index: int) -> tuple:
@@ -275,7 +316,7 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
                 f.close()
             elapsedTime = timeit.default_timer() - elapsedTime
             print(f'[{round(elapsedTime,2)}s.] eta = {odesModel.eta} in {filename} saved, {round((eta_final-odesModel.eta)/delta_eta)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
                 break
         else:
             print(f'[eta = {odesModel.eta}] Process completed!')
@@ -307,7 +348,7 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
             elapsedTime = timeit.default_timer() - elapsedTime
             print(
                 f'[{round(elapsedTime,2)}s.] eta = {odesModel.eta} in {filename} saved, {round(-odesModel.eta / delta_eta)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
                 break
         else:
             print(f'[eta = {odesModel.eta}] Process completed!')
@@ -350,7 +391,7 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
                 f.close()
             elapsedTime = timeit.default_timer() - elapsedTime
             print(f'[{round(elapsedTime,2)}s.] kappa = {odesModel.kappa} in {filename} saved, {round((kappa_final-odesModel.kappa)/delta_kappa)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
                 break
         else:
             print(f'[kappa = {odesModel.kappa}] Process completed!')
@@ -382,26 +423,98 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
             elapsedTime = timeit.default_timer() - elapsedTime
             print(
                 f'[{round(elapsedTime,2)}s.] kappa = {odesModel.kappa} in {filename} saved, {round(-odesModel.kappa / delta_kappa)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
                 break
         else:
             print(f'[kappa = {odesModel.kappa}] Process completed!')
 
 
+def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_index: int, filename: str) -> NoReturn:
+    m, eta, tau, kappa, epsilon, initialPoint = get_string_data(filename, start_string_index)
+    if delta_tau < 0 and tau_final > tau:
+        return print(f'[finalTau = {tau_final}] unreachable: [tau = {tau}, deltaTau = {delta_tau}]')
+    numElements = len(initialPoint)-1
+    odesModel = odesSD.thetaNeurons(tau, eta, kappa, m, epsilon)
+    odesModelDescription = [odesModel, 'rhsFunction']
+    odesS = [0., times]
+    odesNS = [10 * np.int_(odesS[1]), 10]
+    print(f'[Stretching tau] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaTau = {delta_tau}, finalTau = {tau_final}, odesSpan = {odesS}')
+    if delta_tau > 0:
+        while round(odesModel.tau+delta_tau, 3) <= tau_final:
+            elapsedTime = timeit.default_timer()
+            odesModel.tau = round(odesModel.tau + delta_tau, 3)
+            theta_sol, t_sol = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
+            qpi = np.transpose(theta_sol)
+            r1 = []
+            r2 = []
+            for j in range(len(qpi[0])):
+                points = qpi[:, j]
+                sum_1 = 0
+                sum_2 = 0
+                for k in range(0, numElements):
+                    sum_1 += np.exp(1j * points[k])
+                    sum_2 += np.exp(2j * points[k])
+                r1.append(np.abs(sum_1 / numElements))
+                r2.append(np.abs(sum_2 / numElements))
+            data = [m, eta, odesModel.tau, kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
+            data = np.append(data, qpi[:, -1])
+            for j in range(7, 18):
+                data[j] = float(data[j]) % (2 * np.pi)
+            with open(filename, 'a+', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(data)
+                f.close()
+            elapsedTime = timeit.default_timer() - elapsedTime
+            print(f'[{round(elapsedTime,2)}s.] tau = {odesModel.tau} in {filename} saved, {round((tau_final-odesModel.tau)/delta_tau)} iterations left')
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+                break
+        else:
+            print(f'[tau = {odesModel.tau}] Process completed!')
+    if delta_tau < 0:
+        while round(-odesModel.tau/delta_tau, 3) > 0:
+            elapsedTime = timeit.default_timer()
+            odesModel.tau = round(odesModel.tau + delta_tau, 3)
+            theta_sol, t_sol = odesES.ivpSolution(odesMethod, odesS, odesNS, odesModelDescription, initialPoint)
+            qpi = np.transpose(theta_sol)
+            r1 = []
+            r2 = []
+            for j in range(len(qpi[0])):
+                points = qpi[:, j]
+                sum_1 = 0
+                sum_2 = 0
+                for k in range(0, numElements):
+                    sum_1 += np.exp(1j * points[k])
+                    sum_2 += np.exp(2j * points[k])
+                r1.append(np.abs(sum_1 / numElements))
+                r2.append(np.abs(sum_2 / numElements))
+            data = [m, eta, odesModel.tau, kappa, epsilon, np.sum(r1) / len(r1), np.sum(r2) / len(r2)]
+            data = np.append(data, qpi[:, -1])
+            for j in range(7, 18):
+                data[j] = float(data[j]) % (2 * np.pi)
+            with open(filename, 'a+', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(data)
+                f.close()
+            elapsedTime = timeit.default_timer() - elapsedTime
+            print(
+                f'[{round(elapsedTime,2)}s.] tau = {odesModel.tau} in {filename} saved, {round(-odesModel.tau / delta_tau)} iterations left')
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+                break
+        else:
+            print(f'[tau = {odesModel.tau}] Process completed!')
+
 if __name__ == '__main__':
     #default_theta_neuron(50, 0.5, 0.8, 1.5, 0.04, 5, 750, 2000)
-    #visualize_change('kappa', 'results_kappa_negative_eta_0_3.csv', -1, 2000, 2000)
-    visualize_data('results_kappa_positive_eta_0_3.csv', 1983, 1000)
+    #visualize_change('tau', 'results_tau_positive.csv', -1, 1000, 1000)
+    #visualize_data('results_tau_positive.csv', -1, 1000)
 
-    processes = [multiprocessing.Process(target=stretching_kappa,
-                                         args=(0.01, 20, 2000, -1, 'results_kappa_positive_eta_0_3.csv',)),
-                 multiprocessing.Process(target=stretching_kappa,
-                                         args=(-0.01, 0, 2000, -1, 'results_kappa_negative_eta_0_3.csv',)),
-
+    processes = [
+                 multiprocessing.Process(target=stretching_tau,
+                                         args=(0.01, 20, 2000, -1, 'results_tau_positive.csv',)),
+                 multiprocessing.Process(target=stretching_tau,
+                                         args=(-0.01, 0, 2000, -1, 'results_tau_negative.csv',)),
                  ]
-
     for process in processes:
         process.start()
-
     for process in processes:
         process.join()
