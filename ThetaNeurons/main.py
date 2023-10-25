@@ -1,5 +1,4 @@
 import time
-
 import odesExplicitSolvers as odesES
 import odesSystemDescription as odesSD
 import csv
@@ -138,13 +137,13 @@ def visualize_data(filename: str, string_index: int, times: int, noise_scale: fl
     plt.show()
 
 
-def is_cyclope(points: List[float], eta: float, kappa: float, tau: float) -> bool:
+def is_cyclope(points: List[float], eta: float, kappa: float, tau: float, data: np.ndarray) -> bool:
     if len(np.unique(np.round(points, 1))) == 4:
         return True
     else:
         with open('suspect.csv', 'a+', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([eta, kappa, tau])
+            writer.writerow(data)
             f.close()
             print(f'[Suspect state] eta = {eta}, kappa = {kappa}, tau = {tau}')
         return True
@@ -329,7 +328,7 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
                 f.close()
             elapsedTime = timeit.default_timer() - elapsedTime
             print(f'[{round(elapsedTime,2)}s.] eta = {odesModel.eta} in {filename} saved, {round((eta_final-odesModel.eta)/delta_eta)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau, data):
                 break
         else:
             print(f'[eta = {odesModel.eta}] Process completed!')
@@ -361,7 +360,7 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
             elapsedTime = timeit.default_timer() - elapsedTime
             print(
                 f'[{round(elapsedTime,2)}s.] eta = {odesModel.eta} in {filename} saved, {round(-odesModel.eta / delta_eta)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau, data):
                 break
         else:
             print(f'[eta = {odesModel.eta}] Process completed!')
@@ -405,7 +404,7 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
                 f.close()
             elapsedTime = timeit.default_timer() - elapsedTime
             print(f'[{round(elapsedTime,2)}s.] kappa = {odesModel.kappa} in {filename} saved, {round((kappa_final-odesModel.kappa)/delta_kappa)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau, data):
                 break
         else:
             print(f'[kappa = {odesModel.kappa}] Process completed!')
@@ -437,7 +436,7 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
             elapsedTime = timeit.default_timer() - elapsedTime
             print(
                 f'[{round(elapsedTime,2)}s.] kappa = {odesModel.kappa} in {filename} saved, {round(-odesModel.kappa / delta_kappa)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau, data):
                 break
         else:
             print(f'[kappa = {odesModel.kappa}] Process completed!')
@@ -481,7 +480,7 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
                 f.close()
             elapsedTime = timeit.default_timer() - elapsedTime
             print(f'[{round(elapsedTime,2)}s.] tau = {odesModel.tau} in {filename} saved, {round((tau_final-odesModel.tau)/delta_tau)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau, data):
                 break
         else:
             print(f'[tau = {odesModel.tau}] Process completed!')
@@ -513,7 +512,7 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
             elapsedTime = timeit.default_timer() - elapsedTime
             print(
                 f'[{round(elapsedTime,2)}s.] tau = {odesModel.tau} in {filename} saved, {round(-odesModel.tau / delta_tau)} iterations left')
-            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau):
+            if not is_cyclope(qpi[:, -1], odesModel.eta, odesModel.kappa, odesModel.tau, data):
                 break
         else:
             print(f'[tau = {odesModel.tau}] Process completed!')
