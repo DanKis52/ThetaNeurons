@@ -300,7 +300,7 @@ def stretching_eta(delta_eta: float, eta_final: float, times: int, start_string_
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Stretching eta] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaEta = {delta_eta}, finalEta = {eta_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
+    print(f'[Stretching eta] ({filename}) m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaEta = {delta_eta}, finalEta = {eta_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
     initialPoint = add_noise(initialPoint, noise_scale)
     if delta_eta > 0:
         while round(odesModel.eta+delta_eta, 3) <= eta_final:
@@ -376,7 +376,7 @@ def stretching_kappa(delta_kappa: float, kappa_final: float, times: int, start_s
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Stretching kappa] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaKappa = {delta_kappa}, finalKappa = {kappa_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
+    print(f'[Stretching kappa] ({filename}) m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaKappa = {delta_kappa}, finalKappa = {kappa_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
     initialPoint = add_noise(initialPoint, noise_scale)
     if delta_kappa > 0:
         while round(odesModel.kappa+delta_kappa, 3) <= kappa_final:
@@ -452,7 +452,7 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
     odesModelDescription = [odesModel, 'rhsFunction']
     odesS = [0., times]
     odesNS = [10 * np.int_(odesS[1]), 10]
-    print(f'[Stretching tau] m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaTau = {delta_tau}, finalTau = {tau_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
+    print(f'[Stretching tau] ({filename}) m = {m}, eta = {eta}, tau = {tau}, kappa = {kappa}, epsilon = {epsilon}, numElements = {numElements}, deltaTau = {delta_tau}, finalTau = {tau_final}, odesSpan = {odesS}, noise_scale = {noise_scale}')
     initialPoint = add_noise(initialPoint, noise_scale)
     if delta_tau > 0:
         while round(odesModel.tau+delta_tau, 3) <= tau_final:
