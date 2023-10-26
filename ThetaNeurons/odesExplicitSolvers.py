@@ -1,5 +1,6 @@
 # ------------------------------------------------------------------------------- #
 import numpy;
+from tqdm import tqdm
 # ------------------------------------------------------------------------------- #
 def string2function(rhsFunction):
     """ Here is a transformation <class 'string'> to <class 'function'>. """
@@ -29,7 +30,7 @@ def rhsFunctionDef(problem):
         rhsFunction = string2function(problem);
     return rhsFunction;
 # ------------------------------------------------------------------------------- #
-def ivpSolution(odesMethod, xSpan, numSteps, odesProblem, yInitial, *args, **kwargs):
+def ivpSolution(odesMethod, xSpan, numSteps, odesProblem, yInitial, source = None, *args, **kwargs):
     tolerance = 1e+5;
     odesSolver, odesSolverVersion = odesSolverDef(odesMethod);
     rhsFunction = rhsFunctionDef(odesProblem);
@@ -38,13 +39,22 @@ def ivpSolution(odesMethod, xSpan, numSteps, odesProblem, yInitial, *args, **kwa
     y = numpy.zeros([numSteps[0] + 1, len(yInitial)]);
     y[0] = yInitial.copy();
     yy, xx = y[0], x[0];
-    for nx in range(0, numSteps[0]):
-        for mx in range(0, numSteps[1]):
-            yy, xx = odesSolver(rhsFunction, yy, xx, dx, odesSolverVersion, *args, **kwargs);
-        if (yy != yy).any() or (abs(yy - y[nx]) >= tolerance).any():
-            break;
-        else:
-            y[nx + 1] = yy;
+    if source == 'visualisation':
+        for nx in tqdm((range(0, numSteps[0]))):
+            for mx in range(0, numSteps[1]):
+                yy, xx = odesSolver(rhsFunction, yy, xx, dx, odesSolverVersion, *args, **kwargs);
+            if (yy != yy).any() or (abs(yy - y[nx]) >= tolerance).any():
+                break;
+            else:
+                y[nx + 1] = yy;
+    else:
+        for nx in range(0, numSteps[0]):
+            for mx in range(0, numSteps[1]):
+                yy, xx = odesSolver(rhsFunction, yy, xx, dx, odesSolverVersion, *args, **kwargs);
+            if (yy != yy).any() or (abs(yy - y[nx]) >= tolerance).any():
+                break;
+            else:
+                y[nx + 1] = yy;
     return y, x;
 # ------------------------------------------------------------------------------- #
 def ivpBVP(odesMethod, xSpan, numSteps, odesProblem, yInitial, *args, **kwargs):
