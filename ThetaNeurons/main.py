@@ -158,7 +158,6 @@ def is_cyclope_v2(initial_points: List[float], final_points: List[float], eta: f
         f = np.angle(np.exp(1j * (final_points[n] - final_points[0])))
         initial = np.append(initial, i)
         final = np.append(final, f)
-    print(initial)
     initial_first = initial[1:half+1]
     initial_second = initial[half+1:]
     final_first = final[1:half + 1]
