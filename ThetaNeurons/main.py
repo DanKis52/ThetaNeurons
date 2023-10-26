@@ -549,7 +549,7 @@ def stretching_tau(delta_tau: float, tau_final: float, times: int, start_string_
 if __name__ == '__main__':
     #default_theta_neuron(50, 0.5, 0.8, 1.5, 0.04, 5, 750, 2000)
     #visualize_change('tau', 'noNoise/results_tau_negative.csv', 57, 5000, 5000, 0.001)
-    #visualize_data('suspect_v2.csv', 440, 8000, )
+    #visualize_data('SuspectResults/suspect_kappa.csv', 10, 20000, 0)
 
     if click.confirm(f'[__main__] Run stretching?', default=False):
         print(f'[Multiprocessing] {multiprocessing.cpu_count()} cores available')
