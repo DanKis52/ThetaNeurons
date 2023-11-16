@@ -1,10 +1,10 @@
 from allFunctions import *
 
 if __name__ == '__main__':
-    #default_theta_neuron(50, 0.5, 0.8, 1.5, 0.04, 5, 750, 2000)
+    #default_theta_neuron(5, 10, 0.8, 0.2, 0.04, 5, 1000, 20000)
     #visualize_change('tau', 'noNoise/results_tau_negative.csv', 57, 5000, 5000, 0.001)
-    #visualize_data('SuspectResults/suspect_kappa.csv', 10, 20000, 0)
-    suspect_results('suspect_v2.csv')
+    visualize_data('suspect.csv', -1, 5000, 0)
+    #suspect_results('suspect.csv')
     if click.confirm(f'[__main__] Run stretching?', default=False):
         print(f'[Multiprocessing] {multiprocessing.cpu_count()} cores available')
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
@@ -22,6 +22,11 @@ if __name__ == '__main__':
                                                      (0.01, 10, 2000, -1, 'Noise/results_tau_positive.csv', 0.001,),
                                                      (-0.01, 0, 2000, -1, 'noNoise/results_tau_negative.csv', 0,),
                                                      (0.01, 10, 2000, -1, 'noNoise/results_tau_positive.csv', 0,)])
-        result_eta.get()
-        result_kappa.get()
-        result_tau.get()
+        result_eps = pool.starmap_async(stretching_eps, [(-0.001, 0, 2000, -1, 'Noise/results_eps_negative.csv', 0.001,),
+                                                     (0.001, 10, 2000, -1, 'Noise/results_eps_positive.csv', 0.001,),
+                                                     (-0.001, 0, 2000, -1, 'noNoise/results_eps_negative.csv', 0,),
+                                                     (0.001, 10, 2000, -1, 'noNoise/results_eps_positive.csv', 0,)])
+        #result_eta.get()
+        #result_kappa.get()
+        #result_tau.get()
+        result_eps.get()
