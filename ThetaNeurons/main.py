@@ -1,9 +1,9 @@
 from allFunctions import *
 
 if __name__ == '__main__':
-    default_theta_neuron(5, 0.3, 0.8, 0.2, 0.3, 5, 3000, 20000)
+    #default_theta_neuron(5, 0.3, 0.8, 0.2, 0.3, 5, 3000, 20000)
     #visualize_change('tau', 'Noise/results_tau_negative.csv', 46, 25000, 200000, 0.001)
-    visualize_data('default.csv', 2, 100000, 0.001)
+    visualize_data('Noise/results_kappa_positive.csv', 397, 300000, 0.001)
     #suspect_results('suspect.csv')
     if click.confirm(f'[__main__] Run stretching?', default=False):
         print(f'[Multiprocessing] {multiprocessing.cpu_count()} cores available')
