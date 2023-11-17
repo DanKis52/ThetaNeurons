@@ -56,14 +56,14 @@ def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon
     odesNumSteps = [10 * np.int_(odesSpan[1]), 10]
     odesModel = odesSD.thetaNeurons(tau, eta, kappa, m, 0)
     odesModelDescription = [odesModel, 'rhsFunction']
-    qpi, t = odesES.ivpSolution(odesMethod, odesSpan, odesNumSteps, odesModelDescription, initialPoint)
+    qpi, t = odesES.ivpSolution(odesMethod, odesSpan, odesNumSteps, odesModelDescription, initialPoint, 'visualisation')
     qpi1, t1 = np.transpose(qpi), t
     # eps != 0
     odesModel.eps = epsilon
     odesSpan = [0., times_w_eps]
     odesNumSteps = [10 * np.int_(odesSpan[1]), 10]
     initialPoint = qpi1[:, -1]
-    qpi, t = odesES.ivpSolution(odesMethod, odesSpan, odesNumSteps, odesModelDescription, initialPoint)
+    qpi, t = odesES.ivpSolution(odesMethod, odesSpan, odesNumSteps, odesModelDescription, initialPoint, 'visualisation')
     qpi2, t2 = np.transpose(qpi), t + t1[-1]
     qpi, t = np.concatenate((qpi1, qpi2), axis=1), np.concatenate((t1, t2), axis=0)
 
@@ -77,7 +77,7 @@ def default_theta_neuron(m: float, eta: float, tau: float, kappa: float, epsilon
     plt.xlabel("$t$")
     plt.ylabel("$\phi$")
     plt.axvline(x=(t1[-1]), color='red')
-    plt.title(f'$\eta$ = {odesModel.eta} $\kappa$ = {odesModel.kappa}\n')
+    plt.title(fr'$\eta$ = {odesModel.eta} $\kappa$ = {odesModel.kappa} $\tau$ = {odesModel.tau} $\epsilon$ = {odesModel.eps}'+'\n')
     plt.show()
 
     r1 = []
