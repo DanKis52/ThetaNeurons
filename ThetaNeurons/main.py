@@ -2,7 +2,7 @@ from allFunctions import *
 
 if __name__ == '__main__':
     #default_theta_neuron(5, 10, 0.8, 0.2, 0.04, 5, 1000, 20000)
-    visualize_change('eps', 'Noise/results_eps_positive.csv', 246, 100000, 100000, 0.001)
+    visualize_change('eps', 'Noise/results_eps_positive.csv', 249, 2000, 100000, 0.001)
     #visualize_data('Noise/results_eps_positive.csv', 245, 80000, 0.001)
     #suspect_results('suspect.csv')
     if click.confirm(f'[__main__] Run stretching?', default=False):
